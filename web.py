@@ -61,7 +61,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 # Set page title and layout
 st.set_page_config(
-    page_title="PCOS Assisted Reproduction Cumulative Live Birth Rate Prediction System",
+    page_title="Cumulative live birth rate prediction system V1.0 for patients with polycystic ovary syndrome receiving assisted reproductive treatment",
     page_icon="🏥",
     layout="wide"
 )
@@ -73,50 +73,51 @@ plt.rcParams['axes.unicode_minus'] = False  # Fix minus sign display issue
 # Define global variables
 global feature_names, feature_dict, variable_descriptions
 
-# Feature names (using 14 specified variables)
+# Feature names (using 15 specified variables)
 feature_names_display = [
     'age', 'LDL', 'bPRL', 'bE2', 'AMH', 'S_Dose', 'T_Dose',
-    'D5_FSH', 'D5_LH', 'HCG_E2', 'HCG_LH', 'Ocytes', 'BFR', 'Cycles'
+    'D5_FSH', 'D5_LH', 'D5_E2', 'HCG_E2', 'HCG_LH', 'Ocytes', 'BFR', 'Cycles'
 ]
 
 # English feature names
 feature_names_en = [
     'Female Age', 'LDL Cholesterol', 'Baseline Prolactin', 'Baseline Estradiol', 'Anti-Müllerian Hormone',
-    'Gonadotropin Starting Dose', 'Total Gonadotropin Dose', 'Day 5 FSH', 'Day 5 LH',
+    'Gonadotropin Starting Dose', 'Total Gonadotropin Dose', 'Day 5 FSH', 'Day 5 LH', 'Day 5 Estradiol',
     'HCG Day Estradiol', 'HCG Day LH', 'Oocytes Retrieved', 'Blastocyst Formation Rate', 'Total Transfer Cycles'
 ]
 
 feature_dict = dict(zip(feature_names_display, feature_names_en))
 
-# Variable description dictionary (including 14 specified variables)
+# Variable description dictionary (including 15 specified variables)
 variable_descriptions = {
     'age': 'Female Age (years)',
-    'LDL': 'LDL Cholesterol (mmol/L)',
+    'LDL': 'Low Density Lipoprotein (mmol/L)',
     'bPRL': 'Baseline Prolactin (ng/mL)',
     'bE2': 'Baseline Estradiol (pg/mL)',
     'AMH': 'Anti-Müllerian Hormone (ng/mL)',
-    'S_Dose': 'Gonadotropin Starting Dose (IU)',
-    'T_Dose': 'Total Gonadotropin Dose (IU)',
-    'D5_FSH': 'Day 5 Follicle Stimulating Hormone (mIU/mL)',
-    'D5_LH': 'Day 5 Luteinizing Hormone (mIU/mL)',
-    'HCG_E2': 'HCG Day Estradiol (pg/mL)',
-    'HCG_LH': 'HCG Day Luteinizing Hormone (mIU/mL)',
+    'S_Dose': 'Initial Dose of Gonadotropin (IU)',
+    'T_Dose': 'Total Dose of Gonadotropin (IU)',
+    'D5_FSH': 'FSH level on day 5 of ovarian stimulation (mIU/mL)',
+    'D5_LH': 'LH level on day 5 of ovarian stimulation (mIU/mL)',
+    'D5_E2': 'Estradiol level on day 5 of ovarian stimulation (pg/mL)',
+    'HCG_E2': 'Estradiol on HCG Day (pg/mL)',
+    'HCG_LH': 'LH on HCG Day (mIU/mL)',
     'Ocytes': 'Oocytes Retrieved (count)',
     'BFR': 'Blastocyst Formation Rate (%)',
-    'Cycles': 'Total Transfer Cycles (count)'
+    'Cycles': 'Number of Transplantation Cycles (count)'
 }
 
 # Load XGBoost model and related files
 @st.cache_resource
 def load_model():
     # Load XGBoost model
-    model = joblib.load('./best_xgboost_model.pkl')
+    model = joblib.load('最佳模型/best_xgboost_model.pkl')
 
     # Load scaler
-    scaler = joblib.load('./scaler.pkl')
+    scaler = joblib.load('数据/scaler.pkl')
 
     # Load feature column names
-    with open('./feature_columns.pkl', 'rb') as f:
+    with open('最佳模型/feature_columns.pkl', 'rb') as f:
         feature_columns = pickle.load(f)
 
     return model, scaler, feature_columns
@@ -126,7 +127,7 @@ def main():
     global feature_names, feature_dict, variable_descriptions
 
     # Sidebar title
-    st.sidebar.title("PCOS Assisted Reproduction Cumulative Live Birth Rate Prediction System V1.0")
+    st.sidebar.title("Cumulative live birth rate prediction system V1.0 for patients with polycystic ovary syndrome receiving assisted reproductive treatment")
     st.sidebar.image("https://img.freepik.com/free-vector/hospital-logo-design-vector-medical-cross_53876-136743.jpg", width=200)
 
     # Add system description to sidebar
@@ -160,7 +161,7 @@ def main():
             st.markdown(f"**{feature_dict[feature]}**: {variable_descriptions[feature]}")
 
     # Main page title
-    st.title("PCOS Assisted Reproduction Cumulative Live Birth Rate Prediction System V1.0")
+    st.title("Cumulative live birth rate prediction system V1.0 for patients with polycystic ovary syndrome receiving assisted reproductive treatment")
     st.markdown("### XGBoost Algorithm-Based Cumulative Live Birth Rate Assessment")
 
     # Load model
@@ -173,7 +174,7 @@ def main():
 
     # Create input form
     st.header("Patient Information Input")
-    st.markdown("### Please fill in the following 14 key indicators")
+    st.markdown("### Please fill in the following 15 key indicators")
 
     # Create tabs to organize input
     tab1, tab2, tab3, tab4 = st.tabs(["Patient Baseline Info", "Stimulation Monitoring", "Ovulation Trigger Indicators", "Embryo Testing & Transfer"])
@@ -192,29 +193,30 @@ def main():
             amh = st.number_input("Anti-Müllerian Hormone (ng/mL)", min_value=0.1, max_value=20.0, value=3.0, step=0.1)
 
     with tab2:
-        st.subheader("Stimulation Process Monitoring")
+        st.subheader("Controlled Ovarian Hyperstimulation")
         col1, col2 = st.columns(2)
 
         with col1:
-            s_dose = st.number_input("Gonadotropin Starting Dose (IU)", min_value=75, max_value=450, value=225)
-            t_dose = st.number_input("Total Gonadotropin Dose (IU)", min_value=500, max_value=5000, value=2250)
+            s_dose = st.number_input("Initial dose of gonadotropin (IU)", min_value=75, max_value=450, value=225)
+            t_dose = st.number_input("Total dose of gonadotropin (IU)", min_value=500, max_value=5000, value=2250)
+            d5_fsh = st.number_input("FSH level on day 5 of ovarian stimulation (mIU/mL)", min_value=1.0, max_value=50.0, value=8.0, step=0.1)
 
         with col2:
-            d5_fsh = st.number_input("Day 5 Follicle Stimulating Hormone (mIU/mL)", min_value=1.0, max_value=50.0, value=8.0, step=0.1)
-            d5_lh = st.number_input("Day 5 Luteinizing Hormone (mIU/mL)", min_value=0.5, max_value=30.0, value=3.0, step=0.1)
+            d5_lh = st.number_input("LH level on day 5 of ovarian stimulation (mIU/mL)", min_value=0.5, max_value=30.0, value=3.0, step=0.1)
+            d5_e2 = st.number_input("Estradiol level on day 5 of ovarian stimulation (pg/mL)", min_value=50.0, max_value=2000.0, value=200.0, step=10.0)
 
     with tab3:
-        st.subheader("Ovulation Trigger Indicators")
+        st.subheader("Ovulation Trigger Criteria")
         col1, col2 = st.columns(2)
 
         with col1:
-            hcg_e2 = st.number_input("HCG Day Estradiol (pg/mL)", min_value=500.0, max_value=8000.0, value=2000.0, step=50.0)
+            hcg_e2 = st.number_input("Estradiol on HCG Day (pg/mL)", min_value=500.0, max_value=8000.0, value=2000.0, step=50.0)
 
         with col2:
-            hcg_lh = st.number_input("HCG Day Luteinizing Hormone (mIU/mL)", min_value=0.1, max_value=20.0, value=1.0, step=0.1)
+            hcg_lh = st.number_input("LH on HCG Day (mIU/mL)", min_value=0.1, max_value=20.0, value=1.0, step=0.1)
 
     with tab4:
-        st.subheader("Embryo Testing Indicators & Transfer Cycles")
+        st.subheader("Embryo Assessment Parameters & Transfer Cycles")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -222,24 +224,24 @@ def main():
             bfr = st.number_input("Blastocyst Formation Rate (%)", min_value=0.0, max_value=100.0, value=40.0, step=1.0)
 
         with col2:
-            cycles = st.number_input("Total Transfer Cycles (count)", min_value=1, max_value=10, value=1)
+            cycles = st.number_input("Number of Transplantation Cycles (count)", min_value=1, max_value=10, value=1)
 
     # Create prediction button
     predict_button = st.button("Predict Cumulative Live Birth Rate", type="primary")
 
     if predict_button:
-        # Collect 14 input features
+        # Collect 15 input features
         features = [
             age, ldl, bprl, be2, amh, s_dose, t_dose,
-            d5_fsh, d5_lh, hcg_e2, hcg_lh, ocytes, bfr, cycles
+            d5_fsh, d5_lh, d5_e2, hcg_e2, hcg_lh, ocytes, bfr, cycles
         ]
 
-        # Convert to DataFrame (containing only 14 feature columns)
+        # Convert to DataFrame (containing 15 feature columns)
         input_df = pd.DataFrame([features], columns=feature_columns)
 
-        # Standardize continuous variables (all 14 variables are continuous)
+        # Standardize continuous variables (all 15 variables are continuous)
         continuous_vars = ['age', 'LDL', 'bPRL', 'bE2', 'AMH', 'S_Dose', 'T_Dose',
-                          'D5_FSH', 'D5_LH', 'HCG_E2', 'HCG_LH', 'Ocytes', 'BFR', 'Cycles']
+                          'D5_FSH', 'D5_LH', 'D5_E2', 'HCG_E2', 'HCG_LH', 'Ocytes', 'BFR', 'Cycles']
 
         # Create a copy of input data for standardization
         input_scaled = input_df.copy()
@@ -396,7 +398,7 @@ def main():
                             data=input_df.iloc[0].values,
                             feature_names=[feature_dict.get(f, f) for f in feature_names_display]
                         ),
-                        max_display=14,  # Display all 14 features
+                        max_display=15,  # Display all 15 features
                         show=False
                     )
                 except Exception as display_error:
@@ -409,7 +411,7 @@ def main():
                             data=input_df.iloc[0].values,
                             feature_names=english_names
                         ),
-                        max_display=14,
+                        max_display=15,
                         show=False
                     )
 
@@ -472,7 +474,7 @@ def main():
 
                 plt.rcParams['axes.unicode_minus'] = False
 
-                sorted_idx = np.argsort(np.abs(shap_value))[-14:]  # Display all 14 features
+                sorted_idx = np.argsort(np.abs(shap_value))[-15:]  # Display all 15 features
 
                 bars = plt.barh(range(len(sorted_idx)), shap_value[sorted_idx])
 
