@@ -111,13 +111,13 @@ variable_descriptions = {
 @st.cache_resource
 def load_model():
     # Load XGBoost model
-    model = joblib.load('最佳模型/best_xgboost_model.pkl')
+    model = joblib.load('./best_xgboost_model.pkl')
 
     # Load scaler
-    scaler = joblib.load('数据/scaler.pkl')
+    scaler = joblib.load('./scaler.pkl')
 
     # Load feature column names
-    with open('最佳模型/feature_columns.pkl', 'rb') as f:
+    with open('./feature_columns.pkl', 'rb') as f:
         feature_columns = pickle.load(f)
 
     return model, scaler, feature_columns
